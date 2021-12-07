@@ -1,10 +1,6 @@
 #include <iostream> 
 #include <vector>
 #include <numeric>
-#include <range/v3/all.hpp>
-
-namespace rg = ranges;
-namespace vw = rg::views;
 
 /*
  *       1   2   3   4   5   6   7   8 
@@ -17,11 +13,20 @@ namespace vw = rg::views;
  */
 template<size_t N>
 size_t count_ascending_sliding_sum(const auto& v) {
-        return std::transform_reduce(v.cbegin() + N, v.cend(), v.cbegin(), 0UL, std::plus<>{}, std::greater<>{});
-        static_assert(N > 0);
-        return rg::count_if(v | vw::sliding(N+1),
-                            [](auto r){return r.front() < r.back();});
+        return std::transform_reduce(
+			v.cbegin() + N, v.cend(), 
+			v.cbegin(), 0UL, 
+			std::plus<>{}, std::greater<>{});
 }
+
+// Use range-v3 to simulate sliding windows
+//#include <range/v3/all.hpp>
+//template<size_t N>
+//size_t count_ascending_sliding_sum(const auto& v) {
+//        static_assert(N > 0);
+//        return ranges::count_if(v | ranges::views::sliding(N+1),
+//                            [](auto r){return r.front() < r.back();});
+//}
 
 size_t part1(const auto& v) {
         return count_ascending_sliding_sum<1>(v);

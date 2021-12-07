@@ -1,0 +1,2 @@
+#!/bin/sh
+g++ --std=c++20 -O3 day$1.cpp -o day$1

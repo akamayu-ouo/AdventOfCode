@@ -1,12 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <optional>
-#include <numeric>
-#include <ranges>
-#include <algorithm>
 #include <string>
 #include <sstream>
 #include <set>
+#include <range/v3/all.hpp>
 
 using Marks = std::array<bool, 100>;
 using Board = std::array<int, 25>;
@@ -18,22 +16,19 @@ struct Input {
 };
 
 bool bingo(const Board& b, const Marks & m) {
-        return std::ranges::any_of(BingoLines, [&](auto l){
-                        for(unsigned i = 0; i < 5; ++i){
-                                bool row{true}, col{true};
-                                for(unsigned j = 0; j < 5; ++j){
-                                        row &= m[b[i*5+j]];
-                                        col &= m[b[j*5+i]];
-                                }
-                                if(row || col) return true;
-                        }
-                        return false;
-                });
+        for(unsigned i = 0; i < 5; ++i){
+                bool row{true}, col{true};
+                for(unsigned j = 0; j < 5; ++j){
+                        row &= m[b[i*5+j]];
+                        col &= m[b[j*5+i]];
+                }
+                if(row || col) return true;
+        }
+        return false;
 }
 
 size_t sum_unmarked(const Board& b, const Marks& m) {
-        return std::transform_reduce(b.cbegin(), b.cend(), 0UL
-                        , std::plus<>{}, [&](int n){return m[n] ? 0 : n;});
+        return ranges::accumulate(b | ranges::views::filter([&](int n)->bool{return !m[n];}), 0UL);
 }
 
 size_t part1(const Input& in) {
@@ -41,7 +36,7 @@ size_t part1(const Input& in) {
         auto bingo_by_mark = [&](auto it){return bingo(it, mark);};
         for(auto n : in.plays){
                 mark[n] = true;
-                auto b = std::ranges::find_if(in.boards, bingo_by_mark);
+                auto b = ranges::find_if(in.boards, bingo_by_mark);
                 if(b != in.boards.cend())
                         return sum_unmarked(*b, mark) * n;
         }
@@ -59,10 +54,10 @@ size_t part2(const Input& in) {
 
         for(auto n : in.plays){
                 mark[n] = true;
-                auto it = std::ranges::find_if(unfinished, bingo_by_mark);
+                auto it = ranges::find_if(unfinished, bingo_by_mark);
                 if(it != unfinished.cend()){
                         if(unfinished.size() == 1)
-                               return sum_unmarked(**it, mark) * n;
+                                return sum_unmarked(**it, mark) * n;
                         unfinished.erase(it);
                 }
         }

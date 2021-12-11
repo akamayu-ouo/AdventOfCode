@@ -1,48 +1,36 @@
 #include <iostream>
-#include <algorithm>
+#include <iostream>
+#include <cmath>
 #include <vector>
-#include <functional>
-#include <limits>
-#include <numeric>
 #include <string>
-#include <ranges>
+#include <functional>
+#include <range/v3/all.hpp>
 
-using Input = std::vector<int>;
+namespace rg = ranges;
+namespace rv = rg::views;
+
 using ll = long long;
 
-
-Input read(std::istream& is) {
-	Input in;
-	for(std::string num; std::getline(is, num, ','); )
-		in.emplace_back(std::stoll(num));
-	return in;
+auto read(std::istream& is) {
+        return rg::getlines(is, ',') 
+             | rv::transform([](const auto& s){return std::stoi(s);})
+             | rg::to_vector;
 }
 
-size_t cal_fuel(ll i, const auto& in, size_t(*dist)(ll,ll)){
-	return std::transform_reduce(
-			in.cbegin(), in.cend(), 
-			0LL, std::plus<>{}, 
-			std::bind_front(dist, i));
+size_t min_fuel(const auto& in, size_t(*dist)(ll,ll)) {
+        auto calc_fuel = [&](ll i) {
+                return rg::accumulate(in, 0ULL, rg::plus{}, std::bind_front(dist, i));
+        };
+        return rg::min(rv::iota(0LL, *rg::max_element(in)) | rv::transform(calc_fuel));
 }
 
-size_t min_fuel(const auto& in, size_t(*dist)(ll,ll)){
-	auto n = *std::ranges::max_element(in);
-	size_t min = std::numeric_limits<size_t>::max();
-	for(long long  i = 0; i < n; ++i){
-		auto fuel = cal_fuel(i, in, dist);
-		if(min < fuel) return min;
-		min = fuel;
-	}
-	return min;
-}
-
-size_t linear(ll a, ll b){
+size_t linear(ll a, ll b) {
 	return std::abs(a - b);
 }
 
-size_t quadradic(ll a, ll b){
+size_t quadradic(ll a, ll b) {
 	auto d = linear(a, b);
-	return (d * d + d) / 2;
+	return d * (d+1) / 2;
 }
 
 int main(void) {

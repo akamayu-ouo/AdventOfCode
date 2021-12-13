@@ -23,34 +23,15 @@ auto valid_neighbors(int i, int j){
                         rv::iota(std::max(i-D, 0), std::min(i+D+1, SIZE)), 
                         rv::iota(std::max(j-D, 0), std::min(j+D+1, SIZE)));
 }
-const std::array COLORS{
-        "\x1b[48;2;255;255;255m",
- 	"\x1b[48;2;114;137;218m",
-	"\x1b[48;2;255;13;255;255m",
-	"\x1b[48;2;153;13;170;181m",
-	"\x1b[48;2;44;13;47;51m",
-	"\x1b[48;2;35;13;39;42m",
- 	"\x1b[48;2;114;137;218m",
-	"\x1b[48;2;255;13;255;255m",
-	"\x1b[48;2;153;13;170;181m",
-	"\x1b[48;2;44;13;47;51m",
-	"\x1b[48;2;35;13;39;42m",
- 	"\x1b[48;2;114;137;218m",
-	"\x1b[48;2;255;13;255;255m",
-	"\x1b[48;2;153;13;170;181m",
-	"\x1b[48;2;44;13;47;51m",
-	"\x1b[48;2;35;13;39;42m",
-};
-const char* NUL = "\x1b[0m";
 
-void get_color(float f) {
+void set_color(float f) {
         int r = (f<1)? 255 : std::lerp(0,225, f/10);
         int g = (f<1)? 255 : std::lerp(0,225, f/10);
         int b = (f<1)? 100 : std::lerp(0,225, f/10);
-        if (g>255) g = 510-g;
         std::cout << "\x1b[48;2;" << r << ';' << g << ';' << b << "m";
 }
 
+const char* NUL = "\x1b[0m";
 int main(int argc, const char* argv[]) {
 
         if(argc > 1)
@@ -60,13 +41,12 @@ int main(int argc, const char* argv[]) {
         auto update = [](int& n)->int{ return (n<10)? ++n : n; };
         auto show = [&]() {
                 for(auto&& [idx, oct] : board | rv::enumerate){
-                        get_color(oct);
+                        set_color(oct);
                         std::cout << "  " << NUL;
                         if(idx%SIZE == (SIZE-1))     
                                 std::putchar('\n');
                 }
                 std::putchar('\n');
-                std::cout << std::flush;
         };
 
         for(size_t t = 1, tot = 0; true; ++t){

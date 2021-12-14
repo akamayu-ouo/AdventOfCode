@@ -1,55 +1,52 @@
-#include<iostream>
-#include<algorithm>
-#include<vector>
-#include<string>
-#include<ranges>
+#include <iostream>
+#include <range/v3/all.hpp>
+#include <vector>
 
-auto at(size_t i){
-        return [=](const auto& l){return l[i];};
+namespace rg = ranges;
+namespace rv = rg::views;
+namespace ra = rg::actions;
+
+auto match(auto n){
+        return [=](size_t j){return 0 != (n&j);};
 }
 
-size_t part1(const auto& v) {
-        const size_t n = v.front().size();
-        size_t gma = 0;
-        size_t eps = 0;
-        for(unsigned i = 0; i < n; ++i){
-                auto n1 = std::ranges::count(v, '1', at(i));
+size_t part1(const auto& v, auto n) {
+        size_t gma = 0, eps = 0;
+        while(n > 0){
+                auto n1 = rg::count_if(v, match(n));
                 auto n0 = v.size() - n1;
                 gma = (gma*2)+(n1>n0);
                 eps = (eps*2)+(n1<n0);
+                n >>= 1;
         }
         return gma*eps;
 }
 
 template<typename cmp>
-size_t part2_(auto&& v, size_t i = 0) {
-        if(v.size() == 1) return std::stol(v.front(), nullptr, 2);
-        auto r = std::ranges::partition(v, [](char c){return c=='0';}, at(i));
-        auto n1 = r.size(), n0 = v.size() - n1;
-        return part2_<cmp>(cmp{}(n0, n1)? r : decltype(r){v.begin(), r.begin()}, i+1);
-}
-
-template<typename cmp>
-size_t part2__(auto a, auto b) {
-        const size_t n = b - a;
-        for(size_t i = 0; (i < n) && (b-a > 1); ++i){
-                auto m = std::partition(a, b, [=](const auto& l){return l[i]=='0';});
+size_t part2(const auto& v, auto n) {
+        auto a = std::cbegin(v), b = std::cend(v);
+        while((b-a)>1 && n>0){
+                auto m = rg::find_if(a, b, match(n));
                 auto n1 = b - m, n0 = m - a;
                 (cmp{}(n0,n1)? a: b) = m;
+                n >>= 1;
         }
-        return std::stol(*a, nullptr, 2);
+        return *a;
 }
 
-size_t part2(auto v) {
-        auto oxy_rate = part2_<std::less_equal<>>(v);
-        auto co2_rate = part2_<std::greater<>>(v);
-        return co2_rate * oxy_rate;
+size_t part2(auto v, auto n){
+        auto oxy = part2<std::less_equal<>>(v, n);
+        auto co2 = part2<std::greater<>>(v, n);
+        return co2 * oxy;
 }
 
 int main(void) {
-        std::vector<std::string> v;
-        for(std::string s; std::cin >> s; v.push_back(s));
-        std::cout << "Answer1: " << part1(v) << '\n';
-        std::cout << "Answer2: " << part2(v) << '\n';
+        const auto v = rg::getlines(std::cin)
+                     | rv::transform([](auto&&s){return std::stoll(s, nullptr, 2);})
+                     | rg::to_vector
+                     | ra::sort;
+        const size_t n = 0b1ULL << static_cast<size_t>(std::log2(rg::max(v)));
+        std::cout << "Answer1: " << part1(v, n) << '\n';
+        std::cout << "Answer2: " << part2(v, n) << '\n';
         return 0;
 }

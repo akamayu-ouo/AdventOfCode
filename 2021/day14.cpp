@@ -7,25 +7,18 @@ namespace rg = ranges;
 namespace rv = ranges::views;
 
 void run(size_t steps, const auto& pairs, auto& cfreq, auto& ccfreq) {
-        const auto shift_down = [](auto& r){
-                auto min = rg::min(r);
-                for(auto& a : r) a -=min;
-        };
         for(auto _ : rv::iota(0ULL, steps)){
-                std::array<long long int, 26*26>  diff{0};
+                auto nccfreq = ccfreq;
                 for(auto [cc, ccf] : rv::enumerate(ccfreq)) {
                        if(!ccf) continue;
                        auto a = cc/26, b = cc%26;
                        auto c = pairs[cc];
-                       diff[a*26+b]-=ccf;
-                       diff[a*26+c]+=ccf;
-                       diff[c*26+b]+=ccf;
-                       cfreq[c]    +=ccf;
+                       nccfreq[a*26+b]-=ccf;
+                       nccfreq[a*26+c]+=ccf;
+                       nccfreq[c*26+b]+=ccf;
+                       cfreq[c]       +=ccf;
                 }
-                for(auto i : rv::iota(0, 26*26))
-                        ccfreq[i] += diff[i];
-                shift_down(cfreq);
-                shift_down(ccfreq);
+                ccfreq = nccfreq;
         }
 }
 

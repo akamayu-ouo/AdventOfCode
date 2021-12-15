@@ -7,10 +7,8 @@ namespace rv = ranges::views;
 
 size_t minimal_risk(size_t m, size_t n, const auto& map) {
 	const size_t N = m*n;
-	std::vector<size_t> dist(N, -1);
-	std::vector<size_t> Q{0};
+	std::vector<size_t> dist(N, -1), Q{0};
 	dist[0] = 0;
-
 	auto getdist = [&](auto i){return dist[i];};
 	auto add = [&](size_t i, size_t j, size_t u) {
 		if(i >= m || j >= n) return ;
@@ -21,8 +19,7 @@ size_t minimal_risk(size_t m, size_t n, const auto& map) {
 			rg::push_heap(Q, rg::greater{}, getdist);
 		}
 	};
-
-	for(auto u = Q.back(); u != N-1 && !Q.empty(); u = Q.back()) {
+	for(auto u = Q.back(); u != N-1; u = Q.back()) {
 		auto i = u/m, j = u%m;
 		Q.pop_back();
 		add(i+1, j, u); add(i-1, j, u);
@@ -33,15 +30,12 @@ size_t minimal_risk(size_t m, size_t n, const auto& map) {
 }
 
 int main(void) {
-	const auto c2s = [](auto&& c)->size_t{return c-'0';};
 	const auto map = rg::getlines(std::cin)
-		       | rv::transform([&](auto&& l){return l | rv::transform(c2s) 
-					                       | rg::to_vector ;})
-		       | rg::to_vector;
-	const auto m = map.size(), n = map.front().size();
+		       | rg::to<std::vector<std::string>>;
+	const auto m = map.size(), n = map.front().length();
 	auto access = [&](size_t i, size_t j) {
 		size_t diff = i/m + j/n;
-		size_t risk = map[i%m][j%n] + diff - 1 ;
+		size_t risk = map[i%m][j%n] - '0' + diff - 1 ;
 		return risk % 9 + 1;
 	};
 	std::cout << "Answer 1: " << minimal_risk(m  ,n  , access) << '\n';
